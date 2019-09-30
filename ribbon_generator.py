@@ -1,4 +1,4 @@
-from math import *
+from numpy import *
 
 tau = 2*pi
 
@@ -31,7 +31,7 @@ def canvas_coords(x, y):
 
 def polygon(points, fill='blue', stroke=None, opacity=0.9):
     svg = '''<polygon points="'''
-    for point in zip(points[::2], points[1::2]):
+    for point in points:
         svg += canvas_coords(*point)
     style = "fill:{};opacity:{};".format(fill, opacity)
     if stroke:
@@ -42,50 +42,68 @@ def polygon(points, fill='blue', stroke=None, opacity=0.9):
     />'''.format(style)
     return svg
 
+p = array([
+    [1, 0],
+    [cos(1/5*tau), sin(1/5*tau)],
+    [cos(2/5*tau), sin(2/5*tau)],
+    [cos(3/5*tau), sin(3/5*tau)],
+    [cos(4/5*tau), sin(4/5*tau)],
+])
 
 knot_tie = polygon([
-    cos(0/5*tau), sin(0/5*tau),
-    cos(2/5*tau), sin(2/5*tau),
-    cos(3/5*tau), sin(3/5*tau),
-    cos(4/5*tau), sin(4/5*tau),
+    p[0], p[2], p[3], p[4],
 ], 'blue', 'blue')
 
 knot_undertie = polygon([
-    cos(0/5*tau), sin(0/5*tau),
-    cos(1/5*tau), sin(1/5*tau),
-    cos(2/5*tau), sin(2/5*tau),
-    cos(3/5*tau), sin(3/5*tau),
+    p[0], p[1], p[2], p[3],
 ], 'orange')
 
-vec_x = cos(1/5*tau) - 1
-vec_y = sin(1/5*tau)
+v = array([cos(1/5*tau) - 1, sin(1/5*tau)])
+v_flip = v.copy()
+v_flip[1] = -v_flip[1]
 
+low_end = array([
+    p[0] + v * (RIBBON_WIDTH-1),
+    p[4] + v * RIBBON_WIDTH,
+])
 lower_strip = polygon([
-    cos(4/5*tau), sin(4/5*tau),
-    cos(0/5*tau), sin(0/5*tau),
-    cos(0/5*tau) + vec_x * (RIBBON_WIDTH - 1), sin(0/5*tau) + vec_y * (RIBBON_WIDTH - 1),
-    cos(4/5*tau) + vec_x * RIBBON_WIDTH, sin(4/5*tau) + vec_y * RIBBON_WIDTH,
+    p[4],
+    p[0],
+    low_end[0],
+    low_end[1],
 ], 'orange')
 
+high_end = array([
+    p[0] + v_flip * (RIBBON_WIDTH-1),
+    p[1] + v_flip * RIBBON_WIDTH,
+])
 upper_strip = polygon([
-    cos(1/5*tau), sin(1/5*tau),
-    cos(0/5*tau), sin(0/5*tau),
-    cos(0/5*tau) + vec_x * (RIBBON_WIDTH - 1), sin(0/5*tau) - vec_y * (RIBBON_WIDTH - 1),
-    cos(1/5*tau) + vec_x * RIBBON_WIDTH, sin(1/5*tau) - vec_y * RIBBON_WIDTH,
+    p[1],
+    p[0],
+    high_end[0],
+    high_end[1],
 ], 'blue', 'blue')
 
+low_end_2 = array([
+    high_end[1] + v * (2*RIBBON_WIDTH-2),
+    high_end[0] + v * (2*RIBBON_WIDTH-2),
+])
 lower_diagonal = polygon([
-    cos(0/5*tau) + vec_x * (RIBBON_WIDTH - 1), sin(0/5*tau) - vec_y * (RIBBON_WIDTH - 1),
-    cos(1/5*tau) + vec_x * RIBBON_WIDTH, sin(1/5*tau) - vec_y * RIBBON_WIDTH,
-    cos(1/5*tau) + vec_x * (2*RIBBON_WIDTH + 1), sin(1/5*tau) + vec_y*(RIBBON_WIDTH-2),
-    cos(0/5*tau) + vec_x * (2*RIBBON_WIDTH), sin(0/5*tau) + vec_y*(RIBBON_WIDTH-1),
+    high_end[0],
+    high_end[1],
+    low_end_2[0],
+    low_end_2[1],
 ], 'orange')
 
+high_end_2 = array([
+    low_end[1] + v_flip * (2*RIBBON_WIDTH-2),
+    low_end[0] + v_flip * (2*RIBBON_WIDTH-2),
+])
 upper_diagonal = polygon([
-    cos(0/5*tau) + vec_x * (RIBBON_WIDTH - 1), sin(0/5*tau) + vec_y * (RIBBON_WIDTH - 1),
-    cos(4/5*tau) + vec_x * RIBBON_WIDTH, sin(4/5*tau) + vec_y * RIBBON_WIDTH,
-    cos(4/5*tau) + vec_x * (2*RIBBON_WIDTH +1), sin(4/5*tau) - vec_y * (RIBBON_WIDTH - 2),
-    cos(0/5*tau) + vec_x * (2*RIBBON_WIDTH), sin(0/5*tau) - vec_y * (RIBBON_WIDTH - 1),
+    low_end[0],
+    low_end[1],
+    high_end_2[0],
+    high_end_2[1],
 ], 'blue', 'blue')
 
 content = ""
@@ -96,35 +114,36 @@ content += lower_strip
 content += upper_strip
 content += knot_tie
 
-ORIGIN_X += vec_x*(3*RIBBON_WIDTH-1.895) * SCALE
-
-knot_tie = polygon([
-    -cos(0/5*tau), sin(0/5*tau),
-    -cos(2/5*tau), sin(2/5*tau),
-    -cos(3/5*tau), sin(3/5*tau),
-    -cos(4/5*tau), sin(4/5*tau),
-], 'orange', 'orange')
-
-knot_undertie = polygon([
-    -cos(0/5*tau), sin(0/5*tau),
-    -cos(1/5*tau), sin(1/5*tau),
-    -cos(2/5*tau), sin(2/5*tau),
-    -cos(3/5*tau), sin(3/5*tau),
-], 'blue')
-
 lower_strip = polygon([
-    -cos(4/5*tau), sin(4/5*tau),
-    -cos(0/5*tau), sin(0/5*tau),
-    -cos(0/5*tau) - vec_x * (RIBBON_WIDTH - 1), sin(0/5*tau) + vec_y * (RIBBON_WIDTH - 1),
-    -cos(4/5*tau) - vec_x * RIBBON_WIDTH, sin(4/5*tau) + vec_y * RIBBON_WIDTH,
+    low_end_2[0],
+    low_end_2[1],
+    low_end_2[1] + v_flip * RIBBON_WIDTH,
+    low_end_2[0] + v_flip * (RIBBON_WIDTH-1),
 ], 'blue')
 
 upper_strip = polygon([
-    -cos(1/5*tau), sin(1/5*tau),
-    -cos(0/5*tau), sin(0/5*tau),
-    -cos(0/5*tau) - vec_x * (RIBBON_WIDTH - 1), sin(0/5*tau) - vec_y * (RIBBON_WIDTH - 1),
-    -cos(1/5*tau) - vec_x * RIBBON_WIDTH, sin(1/5*tau) - vec_y * RIBBON_WIDTH,
+    high_end_2[0],
+    high_end_2[1],
+    high_end_2[1] + v * RIBBON_WIDTH,
+    high_end_2[0] + v * (RIBBON_WIDTH-1),
 ], 'orange', 'orange')
+
+c = high_end_2[0] + v * (RIBBON_WIDTH-1)
+c[0] += 1
+knot_tie = polygon([
+    c - p[0],
+    c - p[1],
+    c - p[2],
+    c - p[3],
+], 'orange', 'orange')
+
+
+knot_undertie = polygon([
+    c - p[0],
+    c - p[2],
+    c - p[3],
+    c - p[4],
+], 'blue')
 
 content += knot_undertie
 content += lower_strip
